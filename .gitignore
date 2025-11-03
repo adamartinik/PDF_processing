@@ -1,0 +1,14 @@
+# Build artifacts
+v2.0/build/
+v2.0/dist/
+v2.0/*.spec
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Test files
+test_*.png
+*.png
