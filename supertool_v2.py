@@ -52,17 +52,17 @@ class PDFScreenshotToolGUI(ttk.Frame):
     def _create_dark_glass_style(self) -> None:
         style = ttk.Style()
         try:
-            style.theme_use("clam")
+            style.theme_use("aqua")
         except tk.TclError:
-            pass
+            style.theme_use("clam")
 
         # Lighter palette for improved readability
         BG_COLOR = "#f4f5f7"
         CARD_BG = "#ffffff"
         PRIMARY = "#007AFF"
         PRIMARY_HOVER = "#2b89ff"
-        TEXT_COLOR = "#1d1d1f"
-        SECONDARY_TEXT = "#6b6b80"
+        TEXT_COLOR = "#ffffff"
+        SECONDARY_TEXT = "#d0d0d5"
         ENTRY_BG = "#ffffff"
         ENTRY_BORDER = "#d1d1d6"
         TROUGH = "#e8e8ed"
@@ -78,38 +78,62 @@ class PDFScreenshotToolGUI(ttk.Frame):
         style.configure("Card.TFrame", background=CARD_BG, relief="flat")
 
         # Labels
-        style.configure("Title.TLabel", background=CARD_BG, foreground=TEXT_COLOR, font=("Helvetica", 16, "bold"))
-        style.configure("Heading.TLabel", background=CARD_BG, foreground=TEXT_COLOR, font=("Helvetica", 12, "bold"))
-        style.configure("Body.TLabel", background=CARD_BG, foreground=TEXT_COLOR, font=("Helvetica", 11))
-        style.configure("Status.TLabel", background=CARD_BG, foreground=SECONDARY_TEXT, font=("Helvetica", 10))
+        # Základné TLabel pozadie na farbu okna (dediť z rodiča kde sa dá)
+        style.configure("TLabel", background=BG_COLOR, foreground=TEXT_COLOR)
+        # Špecifické label štýly bez explicitného background-u
+        style.configure("Title.TLabel", foreground=TEXT_COLOR, font=("Helvetica", 16, "bold"))
+        style.configure("Heading.TLabel", foreground=TEXT_COLOR, font=("Helvetica", 12, "bold"))
+        style.configure("Body.TLabel", foreground=TEXT_COLOR, font=("Helvetica", 11))
+        style.configure("Status.TLabel", foreground=SECONDARY_TEXT, font=("Helvetica", 10))
 
         # Labelframes
         style.configure("Section.TLabelframe", background=CARD_BG, padding=(16, 14))
         style.configure("Section.TLabelframe.Label", background=CARD_BG, foreground=TEXT_COLOR, font=("Helvetica", 12, "bold"))
 
         # Progressbar
-        style.configure("Glass.Horizontal.TProgressbar", troughcolor=TROUGH, background=PRIMARY)
+        style.configure("Blue.Horizontal.TProgressbar", troughcolor=TROUGH, background=PRIMARY)
 
         # Notebook (tabs)
         style.configure("TNotebook", background=BG_COLOR, borderwidth=0)
-        # Unselected tabs: normal padding; Selected: smaller top, larger bottom to appear raised
-        style.configure("TNotebook.Tab", padding=(16, 10, 16, 14), background=CARD_BG, foreground=TEXT_COLOR, borderwidth=0)
-        style.map("TNotebook.Tab",
-                  background=[("selected", CARD_BG)],
-                  foreground=[("selected", TEXT_COLOR)],
-                  relief=[("selected", "raised")],
-                  padding=[("selected", (16, 4, 16, 18))])
+        # Make tab labels white and bold, same visual size, no raised effect
+        style.configure(
+            "TNotebook.Tab",
+            padding=(20, 10, 20, 10),
+            background=CARD_BG,
+            foreground="#ffffff",
+            font=("Helvetica", 12, "bold"),
+            borderwidth=0,
+            minwidth=180
+        )
+        # Force white labels for all states (active/inactive/focus/selected)
+        style.map(
+            "TNotebook.Tab",
+            foreground=[
+                ("disabled", "#bbbbbb"),
+                ("pressed", "#ffffff"),
+                ("active", "#ffffff"),
+                ("selected", "#ffffff"),
+                ("focus", "#ffffff"),
+                ("!focus", "#ffffff"),
+                ("!disabled", "#ffffff"),
+            ],
+            background=[
+                ("selected", CARD_BG),
+                ("active", CARD_BG),
+                ("!disabled", CARD_BG),
+            ]
+        )
 
         # Buttons
         style.configure("Primary.TButton", background=PRIMARY, foreground="#ffffff", padding=(12, 8))
         style.map("Primary.TButton",
                   background=[("active", PRIMARY_HOVER)])
-        style.configure("Secondary.TButton", background="#e5e5ea", foreground=TEXT_COLOR, padding=(10, 6))
+        style.configure("Secondary.TButton", background="#e5e5ea", foreground="#111111", padding=(10, 6))
         style.map("Secondary.TButton",
                   background=[("active", "#efeff4")])
 
         # Entries (dark field background)
-        style.configure("TEntry", fieldbackground=ENTRY_BG, foreground=TEXT_COLOR, bordercolor=ENTRY_BORDER, lightcolor=PRIMARY)
+        style.configure("TEntry", fieldbackground=ENTRY_BG, foreground="#111111", bordercolor=ENTRY_BORDER, lightcolor=PRIMARY)
         style.map("TEntry",
                   fieldbackground=[("focus", ENTRY_BG)],
                   bordercolor=[("focus", PRIMARY)])
@@ -181,7 +205,7 @@ class PDFScreenshotToolGUI(ttk.Frame):
         coords_frame.pack(fill=tk.X, expand=False, pady=(0, 12))
 
         # Top row: Top-Left
-        row1 = ttk.Frame(coords_frame, style="Card.TFrame")
+        row1 = ttk.Frame(coords_frame)
         row1.pack(fill=tk.X, padx=4, pady=4)
         ttk.Label(row1, text="Top-Left (X1, Y1):").pack(side=tk.LEFT)
         self.entry_x1 = ttk.Entry(row1, width=8, textvariable=self.var_x1)
@@ -190,7 +214,7 @@ class PDFScreenshotToolGUI(ttk.Frame):
         self.entry_y1.pack(side=tk.LEFT, padx=(0, 12))
 
         # Second row: Bottom-Right
-        row2 = ttk.Frame(coords_frame, style="Card.TFrame")
+        row2 = ttk.Frame(coords_frame)
         row2.pack(fill=tk.X, padx=4, pady=4)
         ttk.Label(row2, text="Bottom-Right (X2, Y2):").pack(side=tk.LEFT)
         self.entry_x2 = ttk.Entry(row2, width=8, textvariable=self.var_x2)
@@ -199,7 +223,7 @@ class PDFScreenshotToolGUI(ttk.Frame):
         self.entry_y2.pack(side=tk.LEFT, padx=(0, 12))
 
         # Third row: Live preview (width × height)
-        row3 = ttk.Frame(coords_frame, style="Card.TFrame")
+        row3 = ttk.Frame(coords_frame)
         row3.pack(fill=tk.X, padx=4, pady=(6, 4))
         self.label_region_preview = ttk.Label(row3, text=self._compute_region_preview(), style="Status.TLabel")
         self.label_region_preview.pack(side=tk.LEFT)
@@ -212,13 +236,13 @@ class PDFScreenshotToolGUI(ttk.Frame):
         process_frame = ttk.Labelframe(container, text="PDF Processing", style="Section.TLabelframe")
         process_frame.pack(fill=tk.X, expand=False)
 
-        row4 = ttk.Frame(process_frame, style="Card.TFrame")
+        row4 = ttk.Frame(process_frame)
         row4.pack(fill=tk.X, padx=4, pady=4)
         ttk.Label(row4, text="Number of pages:").pack(side=tk.LEFT)
         self.entry_num_pages = ttk.Entry(row4, width=10, textvariable=self.var_num_pages)
         self.entry_num_pages.pack(side=tk.LEFT, padx=(8, 12))
 
-        row5 = ttk.Frame(process_frame, style="Card.TFrame")
+        row5 = ttk.Frame(process_frame)
         row5.pack(fill=tk.X, padx=4, pady=4)
         ttk.Label(row5, text="Output folder name:").pack(side=tk.LEFT)
         self.entry_output_folder = ttk.Entry(row5, width=32, textvariable=self.var_output_folder)
@@ -239,7 +263,7 @@ class PDFScreenshotToolGUI(ttk.Frame):
         # Progress + Status
         bottom = ttk.Frame(container)
         bottom.pack(fill=tk.X, side=tk.BOTTOM, pady=(8, 0))
-        self.progress = ttk.Progressbar(bottom, mode="determinate", style="Glass.Horizontal.TProgressbar")
+        self.progress = ttk.Progressbar(bottom, mode="determinate", style="Blue.Horizontal.TProgressbar")
         self.progress.pack(fill=tk.X, padx=2)
         self.status_var = tk.StringVar(value="Status: Ready")
         self.status_label = ttk.Label(bottom, textvariable=self.status_var, style="Status.TLabel")
